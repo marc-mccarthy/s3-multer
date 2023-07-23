@@ -1,0 +1,7 @@
+-- DATABASE.sql
+
+CREATE TABLE images (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  url TEXT NOT NULL
+);
