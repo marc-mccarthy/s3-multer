@@ -14,31 +14,35 @@ In this tutorial, we will build an image upload component in React that uploads 
 ### File/Folder Structure
 
 ```shell
-├── client
-│   ├── public
-│   ├── src
-│   │   ├── components     
-│   │   │   ├── ImageUpload
-│   │   │   │   ├── ImageUpload.js
-│   │   │   │   ├── __tests__
-│   │   │   │   │   └── ImageUpload.test.js
-│   │   │   ├── ImageList
-│   │   │   │   ├── ImageList.js
-│   │   │   │   ├── __tests__
-│   │   │   │   │   └── ImageList.test.js
-│   │   ├── App.js
-│   │   └── index.js
-│   └── package.json
+├── public
+│   └── index.html
 ├── server
-│   ├── src
-│   │   ├── routes
-│   │   │   └── images.router.js
-│   │   ├── config
-│   │   │   └── database.js  
-│   │   └── server.js 
-│   └── package.json
+│   ├── config
+│   │   └── database.js
+│   ├── routes
+│   │   └── images.router.js
+│   └── server.js
+├── src
+│   ├── components
+│   │   ├── App
+│   │   │   ├── __tests__
+│   │   │   │   └── App.test.js
+│   │   │   ├── App.js
+│   │   │   └── App.styles.js
+│   │   ├── ImageList
+│   │   │   ├── __tests__
+│   │   │   │   └── ImageList.test.js
+│   │   │   ├── ImageList.js
+│   │   │   └── ImageList.styles.js
+│   │   ├── ImageUpload
+│   │   │   ├── __tests__
+│   │   │   │   └── ImageUpload.test.js
+│   │   │   ├── ImageUpload.js
+│   │   │   └── ImageUpload.styles.js
+│   └── index.js
 ├── .env
 ├── .gitignore
+├── package.json
 ├── README.md
 ├── STRUCTURE.md
 └── DATABASE.sql
@@ -173,19 +177,104 @@ export const Button = styled.button`
 `;
 ```
 
+### ImageList Component
+
+`ImageList.js` handles displaying the images on the DOM:
+
+```jsx
+// ImageList.js
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+import { 
+  ImageListStyles,
+  Title,
+  Image 
+} from './ImageList.styles';
+
+const ImageList = () => {
+
+  const [images, setImages] = useState([]);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      const res = await axios.get('/api/images');
+      setImages(res.data);
+    };
+
+    fetchImages();
+  }, []);
+
+  return (
+    <ImageListStyles>
+      <Title>My Image Gallery</Title>
+      
+      {images.map(image => (
+        <Image 
+          key={image.id}
+          src={image.url} 
+          alt={image.name} 
+        />
+      ))}
+
+    </ImageListStyles>
+  );
+}
+
+export default ImageList;
+```
+
+### ImageList Styles Component
+
+`ImageUpload.styles.js` contains the styled components:
+
+```jsx
+// ImageList.styles.js
+
+import styled from 'styled-components';
+
+export const ImageListStyles = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 20px 10px;
+  background: #f5f5f5; 
+`;
+
+export const Title = styled.h2`
+  width: 100%;
+  text-align: center;
+  text-transform: uppercase;
+  color: #333;
+  letter-spacing: 2px;
+  font-size: 1.2rem;
+`; 
+
+export const Image = styled.img`
+  max-width: 200px;
+  height: auto; 
+  margin: 10px;
+  border-radius: 4px;
+  box-shadow: 0 0 6px #ccc;
+`;
+```
+
 ### App Component
 
 `App.js` renders the ImageUpload component:
 
 ```jsx
-import ImageUpload from './components/ImageUpload';
+import ImageList from './components/ImageList/ImageList';
+import ImageUpload from './components/ImageUpload/ImageUpload';
 
 function App() {
-	return (
-		<div className='App'>
-			<ImageUpload />
-		</div>
-	);
+  return (
+    <div>
+      <ImageUpload />
+      <ImageList />
+    </div>
+  );
 }
 
 export default App;
