@@ -1,6 +1,6 @@
-import ImageList from './components/ImageList/ImageList';
-import ImageUpload from './components/ImageUpload/ImageUpload';
-import { AppStyles } from './ImageList.styles';
+import ImageList from '../ImageList/ImageList';
+import ImageUpload from '../ImageUpload/ImageUpload';
+import { AppStyles } from './App.styles';
 
 function App() {
   return (

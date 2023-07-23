@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const imagesRouter = require('./routes/image.router');
+const imagesRouter = require('./routes/images.router');
 
 app.use(express.json());
 app.use('/api/images', imagesRouter);

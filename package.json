@@ -5,11 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node server/server.js",
-		"client": "react-scripts start",
-		"server": "nodemon --watch server server/server.js",
-		"build": "react-scripts build",
-		"test": "echo Running Tests... && jest",
-		"eject": "react-scripts eject"
+    "client": "react-scripts start",
+    "server": "nodemon --watch server server/server.js",
+    "build": "react-scripts build",
+    "test": "echo Running Tests... && jest",
+    "eject": "react-scripts eject"
   },
   "author": "",
   "license": "ISC",
@@ -30,5 +30,17 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^14.0.0",
     "nodemon": "^3.0.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
