@@ -4,8 +4,31 @@
   "description": "Documenting the processes for Image/File Upload with React, Multer, and an S3 Bucket in AWS.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server/server.js",
+		"client": "react-scripts start",
+		"server": "nodemon --watch server server/server.js",
+		"build": "react-scripts build",
+		"test": "echo Running Tests... && jest",
+		"eject": "react-scripts eject"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1420.0",
+    "axios": "^1.4.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jest": "^29.6.1",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.11.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "^5.0.1",
+    "styled-components": "^6.0.5"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^14.0.0",
+    "nodemon": "^3.0.1"
+  }
 }

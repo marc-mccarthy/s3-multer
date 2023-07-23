@@ -1,15 +1,11 @@
-// db.js
-
-const Pool = require('pg').Pool;
+const { Pool } = require('pg');
 
 const pool = new Pool({
-  user: 'postgres',
-  password: 'admin',
-  host: 'localhost',
-  port: 5432,
-  database: 'aws-file-upload-patterns'
+	user: 'postgres',
+	password: 'admin',
+	host: 'localhost',
+	database: 'aws-file-upload-patterns',
+	port: 5432,
 });
 
-module.exports = {
-  query: (text, params) => pool.query(text, params),
-};
+module.exports = pool;

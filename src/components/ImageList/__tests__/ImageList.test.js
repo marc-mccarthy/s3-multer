@@ -1,19 +1,48 @@
-// ImageUpload.test.js
+import '@testing-library/jest-dom';
+import { render, screen } from '@testing-library/react';
+import axios from 'axios';
+import React from 'react';
+import ImageList from '../ImageList';
 
-import { fireEvent, render } from '@testing-library/react';
-import ImageUpload from '../ImageUpload';
+jest.mock('axios');
 
-describe('ImageUpload', () => {
-  it('renders upload form', () => {
-    const { getByText } = render(<ImageUpload />);
-    expect(getByText('Upload Image')).toBeInTheDocument();
+describe('ImageList', () => {
+  it('renders title', async () => {
+    axios.get.mockResolvedValueOnce({
+      data: [{
+        id: 1,
+        url: 'image1.jpg',
+        name: 'Image 1'  
+      }]
+    });
+
+    render(<ImageList />);
+    const title = await screen.findByText(/my image gallery/i);
+    expect(title).toBeInTheDocument();
   });
+
+  it('renders images from API response', async () => {
+    const images = [{
+      id: 1,
+      url: 'image1.jpg',
+      name: 'Image 1'
+    }, {
+      id: 2,
+      url: 'image2.jpg', 
+      name: 'Image 2'
+    }];
   
-  it('updates image name value', () => {
-    const { getByLabelText } = render(<ImageUpload />);
-    fireEvent.change(getByLabelText('Image name'), { target: { value: 'test.jpg' } });
-    expect(getByLabelText('Image name').value).toBe('test.jpg');
+    axios.get.mockResolvedValueOnce({data: images});
+    render(<ImageList />);
+    const imageElements = await screen.findAllByRole('img');
+    expect(imageElements).toHaveLength(2);
+    const firstImageSrc = imageElements[0].getAttribute('src');
+    expect(firstImageSrc).toBe(images[0].url);
   });
 
-  // More tests...
+  it('calls axios get on mount', () => {
+    render(<ImageList />);
+    expect(axios.get).toHaveBeenCalledTimes(1);
+    expect(axios.get).toHaveBeenCalledWith('/api/images');
+  });
 });

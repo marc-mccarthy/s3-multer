@@ -1,5 +1,3 @@
-/// ImageList.styles.js
-
 import styled from 'styled-components';
 
 export const ImageListStyles = styled.div`
@@ -7,7 +5,7 @@ export const ImageListStyles = styled.div`
   flex-wrap: wrap;
   justify-content: center;
   padding: 20px 10px;
-  background: #f5f5f5; 
+  background: #6aa84f; 
 `;
 
 export const Title = styled.h2`

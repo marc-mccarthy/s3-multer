@@ -1,4 +1,4 @@
--- DATABASE.sql
+-- `images` table in `aws-file-upload-patterns` database
 
 CREATE TABLE images (
   id SERIAL PRIMARY KEY,

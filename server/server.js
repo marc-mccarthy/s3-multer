@@ -1,9 +1,9 @@
 const express = require('express');
-const imageRouter = require('./routes/image.router');
-
 const app = express();
+const imagesRouter = require('./routes/image.router');
 
 app.use(express.json());
-app.use('/api/images', imageRouter);
+app.use('/api/images', imagesRouter);
 
-module.exports = app;
+const port = process.env.PORT || 5000;
+app.listen(port, () => console.log(`Server running on port ${port}`));

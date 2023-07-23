@@ -56,22 +56,16 @@ npx create-react-app s3-multer
 
 ### Install Dependencies
 
-Client:
+Client & Server:
 
 ```shell
-npm install axios styled-components react-scripts
+npm install react react-dom react-scripts styled-components axios express pg multer aws-sdk dotenv
 ```
 
-Server:
+Testing & Development:
 
 ```shell
-npm install express pg multer aws-sdk
-```
-
-Testing:
-
-```shell
-npm install --save-dev jest @testing-library/react @testing-library/jest-dom
+npm install --save-dev jest @testing-library/react @testing-library/jest-dom nodemon
 ```
 
 ### Environment Variables
@@ -106,9 +100,9 @@ PG_DATABASE=aws-file-upload-patterns
 `ImageUpload.js` handles the file input and upload:
 
 ```jsx
-import React, { useState } from 'react';
 import axios from 'axios';
-import { Container, Form, Input, Button } from './ImageUpload.styles';
+import React, { useState } from 'react';
+import { Button, Container, Form, Input } from './ImageUpload.styles';
 
 const ImageUpload = () => {
 	const [image, setImage] = useState(null);
@@ -139,6 +133,7 @@ const ImageUpload = () => {
 };
 
 export default ImageUpload;
+
 ```
 
 ### ImageUpload Styles Component
@@ -175,6 +170,7 @@ export const Button = styled.button`
 	border-radius: 5px;
 	cursor: pointer;
 `;
+
 ```
 
 ### ImageList Component
@@ -182,15 +178,12 @@ export const Button = styled.button`
 `ImageList.js` handles displaying the images on the DOM:
 
 ```jsx
-// ImageList.js
-
-import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
-import { 
+import React, { useEffect, useState } from 'react';
+import {
+  Image,
   ImageListStyles,
-  Title,
-  Image 
+  Title
 } from './ImageList.styles';
 
 const ImageList = () => {
@@ -209,7 +202,6 @@ const ImageList = () => {
   return (
     <ImageListStyles>
       <Title>My Image Gallery</Title>
-      
       {images.map(image => (
         <Image 
           key={image.id}
@@ -217,21 +209,19 @@ const ImageList = () => {
           alt={image.name} 
         />
       ))}
-
     </ImageListStyles>
   );
 }
 
 export default ImageList;
+
 ```
 
 ### ImageList Styles Component
 
-`ImageUpload.styles.js` contains the styled components:
+`ImageList.styles.js` contains the styled components:
 
 ```jsx
-// ImageList.styles.js
-
 import styled from 'styled-components';
 
 export const ImageListStyles = styled.div`
@@ -239,7 +229,7 @@ export const ImageListStyles = styled.div`
   flex-wrap: wrap;
   justify-content: center;
   padding: 20px 10px;
-  background: #f5f5f5; 
+  background: #6aa84f; 
 `;
 
 export const Title = styled.h2`
@@ -258,6 +248,7 @@ export const Image = styled.img`
   border-radius: 4px;
   box-shadow: 0 0 6px #ccc;
 `;
+
 ```
 
 ### App Component
@@ -267,31 +258,43 @@ export const Image = styled.img`
 ```jsx
 import ImageList from './components/ImageList/ImageList';
 import ImageUpload from './components/ImageUpload/ImageUpload';
+import { AppStyles } from './ImageList.styles';
 
 function App() {
   return (
-    <div>
+    <AppStyles>
       <ImageUpload />
       <ImageList />
-    </div>
+    </AppStyles>
   );
 }
 
 export default App;
+
+```
+
+### App Styles Component
+
+`App.styles.js` contains the styled components:
+
+```jsx
+import styled from 'styled-components';
+
+export const AppStyles = styled.div`
+  display: flex;
+  flex-wrap: wrap;l
+  justify-content: center;
+  padding: 10px 10px;
+  background: #ffd966; 
+`;
+
 ```
 
 ## Server Setup
 
-Initialize the Express server:
-
-```shell
-npm init -y
-npm install express pg multer aws-sdk
-```
-
 ### Server Config
 
-`server.js` contains the basic Express setup:
+`server/server.js` contains the basic Express setup:
 
 ```js
 const express = require('express');
@@ -314,39 +317,64 @@ const express = require('express');
 const multer = require('multer');
 const aws = require('aws-sdk');
 const router = express.Router();
+require('dotenv').config()
+
+const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
+const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+const awsS3Bucket = process.env.S3_BUCKET
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // AWS S3
 const s3 = new aws.S3({
-	accessKeyId: 'YOUR_AWS_ACCESS_KEY_ID',
-	secretAccessKey: 'YOUR_AWS_SECRET_ACCESS_KEY',
+	accessKeyId: awsAccessKeyId,
+	secretAccessKey: awsSecretAccessKey,
 });
 
 router.post('/', upload.single('image'), async (req, res) => {
-	const file = req.file;
+  const file = req.file;
 
-	// Set S3 parameters
-	const params = {
-		Bucket: 'YOUR_S3_BUCKET',
-		Key: file.originalname,
-		Body: file.buffer,
-	};
+  // Set S3 parameters
+  const params = {
+    Bucket: awsS3Bucket,
+    Key: file.originalname,
+    Body: file.buffer,
+  };
 
-	// Upload to S3
-	s3.upload(params, (error, data) => {
-		if (error) {
-			res.status(500).send(error);
-		}
-		res.json(data);
-	});
+  try {
+    // Upload to S3
+    const s3Result = await s3.upload(params).promise();
+    
+    // Get URL
+    const url = s3Result.Location;
+
+    // Insert into DB
+    const query = 'INSERT INTO images (name, url) VALUES($1, $2) RETURNING *';
+    const values = [originalname, url];
+    const dbResult = await db.query(query, values);
+    // Send back
+    res.json(dbResult.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
+
+router.get('/', async (req, res) => {
+	try {
+		const result = await db.query('SELECT * FROM images ORDER BY id DESC');
+		res.json(result.rows);
+	} catch (err) {
+		console.error(err.message);
+	}
 });
 
 module.exports = router;
+
 ```
 
-This uses Multer to handle the file upload and aws-sdk to upload to S3. Make sure to add your S3 credentials and bucket name.
+This uses Multer to handle the file upload and aws-sdk to upload to S3. Make sure that you added your S3 credentials and bucket name to the `.env` file you created.
 
 ## PostgreSQL Setup
 
@@ -371,6 +399,8 @@ module.exports = pool;
 Create a `database.sql` file and add our table:
 
 ```sql
+-- `images` table in `aws-file-upload-patterns` database
+
 CREATE TABLE images (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -378,123 +408,156 @@ CREATE TABLE images (
 );
 ```
 
-### Saving Image Metadata
-
-Update the image route to save the image metadata:
-
-```js
-// Get DB Connection
-const db = require('../config/database');
-
-router.post('/', upload.single('image'), async (req, res) => {
-
-  // Upload image to S3
-
-  const { originalname } = req.file;
-  const url = // URL from S3 upload
-
-  // Insert into DB
-  const query = 'INSERT INTO images (name, url) VALUES($1, $2) RETURNING *';
-  const values = [originalname, url];
-
-  db.query(query, values, (err, result) => {
-    if (err) {
-      return res.status(400).send(err);
-    }
-
-    res.json(result.rows[0]);
-  })
-
-});
-```
-
-### Retrieving Images
-
-Add a route to fetch images:
-
-```js
-router.get('/', async (req, res) => {
-	try {
-		const result = await db.query('SELECT * FROM images ORDER BY id DESC');
-		res.json(result.rows);
-	} catch (err) {
-		console.error(err.message);
-	}
-});
-```
-
-Update `ImageUpload.js` to retrieve and display images:
-
-```jsx
-import { useState, useEffect } from 'react';
-
-// Fetch images
-useEffect(() => {
-  const fetchImages = async () => {
-    const res = await axios.get('/api/images');
-    setImages(res.data);
-  }
-
-  fetchImages();
-}, []);
-
-return (
-  // Display images
-  {images.map(image => (
-    <img src={image.url} alt={image.name} key={image.id} />
-  ))}
-)
-```
-
 ## Jest Setup and Testing
 
-To ensure our components are working as expected, we will set up Jest for testing. We will create a test for our ImageUpload component to start.
+To ensure our components are working as expected, we will set up Jest for testing. We will create a tests for our components within `__tests__` directories in the component.
 
-Create a new file called `ImageUpload.test.js` in the same directory as `ImageUpload.js`.
+### ImageUpload Unit Tests
+
+Create a file named `ImageUpload.test.js` in the `src/ImageUpload/__tests__` directory. Add the following code:
 
 ```jsx
+import { fireEvent, render, screen } from '@testing-library/react';
+import axios from 'axios';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import ImageUpload from './ImageUpload';
 
-test('renders upload form', () => {
-	render(<ImageUpload />);
-	const linkElement = screen.getByText(/Upload an Image/i);
-	expect(linkElement).toBeInTheDocument();
+jest.mock('axios');
+
+describe('ImageUpload', () => {
+  it('renders upload form', () => {
+    render(<ImageUpload />);
+    expect(screen.getByText('Upload an Image')).toBeInTheDocument();
+    const fileInput = screen.getByLabelText('Choose file');
+    expect(fileInput).toBeInTheDocument();
+    const submitBtn = screen.getByRole('button', { name: 'Upload' }); 
+    expect(submitBtn).toBeInTheDocument();
+  });
+
+  it('calls axios.post when form submitted', async () => {
+    const file = new File(['test'], 'test.png', { type: 'image/png' });
+    render(<ImageUpload />);
+    const fileInput = screen.getByLabelText('Choose file');
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    const submitBtn = screen.getByRole('button', { name: 'Upload' });
+    fireEvent.click(submitBtn);
+    await expect(axios.post).toHaveBeenCalledWith('/api/images', expect.any(FormData));
+  });
+
+  it('displays alert on error', async () => {
+    axios.post.mockRejectedValueOnce('Error uploading image');
+    render(<ImageUpload />);
+    const fileInput = screen.getByLabelText('Choose file');
+    fireEvent.change(fileInput, { target: { files: [] } });
+    const submitBtn = screen.getByRole('button', { name: 'Upload' });
+    fireEvent.click(submitBtn);
+    await expect(screen.getByText('Error uploading image')).toBeInTheDocument();
+  });
 });
 
-test('upload button is disabled when no file is selected', () => {
-	render(<ImageUpload />);
-	const uploadButton = screen.getByRole('button', { name: /Upload/i });
-	expect(uploadButton).toBeDisabled();
-});
-
-test('upload button is enabled when a file is selected', () => {
-	render(<ImageUpload />);
-	const fileInput = screen.getByLabelText(/Upload File/i);
-	const uploadButton = screen.getByRole('button', { name: /Upload/i });
-	fireEvent.change(fileInput, {
-		target: { files: [new File(['file'], 'file.jpg', { type: 'image/jpeg' })] },
-	});
-	expect(uploadButton).toBeEnabled();
-});
 ```
 
-In this test file, we have three tests:
+### ImageList Unit Tests
 
-1.  The first test checks if the form is rendered correctly.
-2.  The second test checks if the upload button is initially disabled.
-3.  The third test checks if the upload button is enabled when a file is selected.
+`ImageList.test.js` in the `src/ImageList/__tests__` folder contains the unit tests:
+Create a file named `ImageList.test.js` in the `src/ImageList/__tests__` directory. Add the following code:
 
-To run the tests, add a test script in your `package.json`:
+```jsx
+import '@testing-library/jest-dom';
+import { render, screen } from '@testing-library/react';
+import axios from 'axios';
+import React from 'react';
+import ImageList from '../ImageList';
+
+jest.mock('axios');
+
+describe('ImageList', () => {
+  it('renders title', async () => {
+    axios.get.mockResolvedValueOnce({
+      data: [{
+        id: 1,
+        url: 'image1.jpg',
+        name: 'Image 1'  
+      }]
+    });
+
+    render(<ImageList />);
+    const title = await screen.findByText(/my image gallery/i);
+    expect(title).toBeInTheDocument();
+  });
+
+  it('renders images from API response', async () => {
+    const images = [{
+      id: 1,
+      url: 'image1.jpg',
+      name: 'Image 1'
+    }, {
+      id: 2,
+      url: 'image2.jpg', 
+      name: 'Image 2'
+    }];
+  
+    axios.get.mockResolvedValueOnce({data: images});
+    render(<ImageList />);
+    const imageElements = await screen.findAllByRole('img');
+    expect(imageElements).toHaveLength(2);
+    const firstImageSrc = imageElements[0].getAttribute('src');
+    expect(firstImageSrc).toBe(images[0].url);
+  });
+
+  it('calls axios get on mount', () => {
+    render(<ImageList />);
+    expect(axios.get).toHaveBeenCalledTimes(1);
+    expect(axios.get).toHaveBeenCalledWith('/api/images');
+  });
+});
+
+```
+
+### App Unit Tests
+
+`App.test.js` in the `src/App/__tests__` folder contains the unit tests:
+
+```jsx
+import { render } from '@testing-library/react';
+import React from 'react';
+import App from '../App';
+import ImageList from '../../ImageList/ImageList';
+import ImageUpload from '../../ImageUpload/ImageUpload';
+
+jest.mock('./components/ImageList/ImageList'); 
+jest.mock('./components/ImageUpload/ImageUpload');
+
+describe('App', () => {
+  it('renders ImageUpload', () => {
+    render(<App />);
+    expect(ImageUpload).toHaveBeenCalled();
+  });
+
+  it('renders ImageList', () => {
+    render(<App />);
+    expect(ImageList).toHaveBeenCalled(); 
+  });
+
+  it('renders ImageUpload before ImageList', () => {
+    const { mock } = ImageUpload;
+    render(<App />);
+    expect(mock.calls[0]).toBeGreaterThan(mock.calls[1]);
+  });
+});
+
+```
+
+To run the tests, add or modify the scripts script below in your `package.json`:
 
 ```json
 "scripts": {
-  "start": "react-scripts start",
-  "build": "react-scripts build",
-  "test": "jest",
-  "eject": "react-scripts eject"
+	"start": "node server/server.js",
+	"client": "react-scripts start",
+	"server": "nodemon --watch server server/server.js",
+	"build": "react-scripts build",
+	"test": "echo Running Tests... && jest",
+	"eject": "react-scripts eject"
 }
 ```
 

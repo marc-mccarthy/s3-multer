@@ -1,12 +1,9 @@
-// ImageList.js
-
-import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
-import { 
+import React, { useEffect, useState } from 'react';
+import {
+  Image,
   ImageListStyles,
-  Title,
-  Image 
+  Title
 } from './ImageList.styles';
 
 const ImageList = () => {
@@ -25,7 +22,6 @@ const ImageList = () => {
   return (
     <ImageListStyles>
       <Title>My Image Gallery</Title>
-      
       {images.map(image => (
         <Image 
           key={image.id}
@@ -33,7 +29,6 @@ const ImageList = () => {
           alt={image.name} 
         />
       ))}
-
     </ImageListStyles>
   );
 }
