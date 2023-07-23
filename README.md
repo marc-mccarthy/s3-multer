@@ -76,10 +76,10 @@ Create an .env file at the root of the repo and paste the following in with your
 
 ```shell
 # React App
-REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_API_URL=http://localhost:5050/api
 
 # Node/Express
-PORT=5000
+PORT=5050
 
 # AWS Credentials
 AWS_ACCESS_KEY_ID=YOUR_AWS_ACCESS_KEY_ID
@@ -87,14 +87,14 @@ AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET_ACCESS_KEY
 AWS_REGION=YOUR_AWS_REGION
 
 # S3
-S3_BUCKET=YOUR_AWS_S3_BUCKET_NAME
+S3_BUCKET=aws-file-upload-patterns
 
 # PostgreSQL
-PG_USER=POSTGRES_USER
-PG_PASSWORD=POSTGRES_PASSWORD
+PG_USER=YOUR_POSTGRES_USER
+PG_PASSWORD=YOUR_POSTGRES_PASSWORD
 PG_HOST=localhost
 PG_PORT=5432
-PG_DATABASE=aws-file-upload
+PG_DATABASE=aws-file-upload-patterns
 ```
 
 ### ImageUpload Component
@@ -231,8 +231,8 @@ const upload = multer({ storage });
 
 // AWS S3
 const s3 = new aws.S3({
-	accessKeyId: 'YOUR_ACCESS_KEY',
-	secretAccessKey: 'YOUR_SECRET_KEY',
+	accessKeyId: 'YOUR_AWS_ACCESS_KEY_ID',
+	secretAccessKey: 'YOUR_AWS_SECRET_ACCESS_KEY',
 });
 
 router.post('/', upload.single('image'), async (req, res) => {
@@ -240,7 +240,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 
 	// Set S3 parameters
 	const params = {
-		Bucket: 'YOUR_S3_BUCKET_NAME',
+		Bucket: 'YOUR_S3_BUCKET',
 		Key: file.originalname,
 		Body: file.buffer,
 	};
@@ -269,10 +269,10 @@ This uses Multer to handle the file upload and aws-sdk to upload to S3. Make sur
 const { Pool } = require('pg');
 
 const pool = new Pool({
-	user: 'YOUR_USER_HERE',
-	password: 'YOUR_PASSWORD_HERE',
+	user: 'YOUR_USER',
+	password: 'YOUR_PASSWORD',
 	host: 'localhost',
-	database: 'aws-file-upload',
+	database: 'aws-file-upload-patterns',
 	port: 5432,
 });
 

@@ -7,7 +7,7 @@ const pool = new Pool({
   password: 'admin',
   host: 'localhost',
   port: 5432,
-  database: 'aws-file-upload'
+  database: 'aws-file-upload-patterns'
 });
 
 module.exports = {
