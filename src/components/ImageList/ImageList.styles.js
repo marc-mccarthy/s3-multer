@@ -5,7 +5,7 @@ export const ImageListStyles = styled.div`
   flex-wrap: wrap;
   justify-content: center;
   padding: 20px 10px;
-  background: #6aa84f; 
+  background: #E3856B; 
 `;
 
 export const Title = styled.h2`

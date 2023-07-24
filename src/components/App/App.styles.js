@@ -2,8 +2,9 @@ import styled from 'styled-components';
 
 export const AppStyles = styled.div`
   display: flex;
-  flex-wrap: wrap;l
+  flex-direction: column;
+  flex-wrap: wrap;
   justify-content: center;
   padding: 10px 10px;
-  background: #ffd966; 
+  background: #80C4B7; 
 `;
