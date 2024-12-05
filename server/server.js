@@ -1,11 +1,21 @@
 const express = require('express');
-const app = express();
+const cors = require('cors');
 const imagesRouter = require('./routes/images.router');
-const testRouter = require('./routes/test.router')
+require('dotenv').config();
 
+const app = express();
+const PORT = process.env.PORT || 5001;
+
+app.use(cors());
 app.use(express.json());
-app.use('/test', testRouter);
-app.use('/images', imagesRouter);
+app.use('/api/images', imagesRouter);
 
-const port = process.env.PORT || 5001;
-app.listen(port, () => console.log(`Server running on port ${port}`));
+// Basic error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

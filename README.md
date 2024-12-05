@@ -4,6 +4,28 @@
 
 In this tutorial, we will build an image upload component in React that uploads images to AWS S3. The backend will be built with Node.js and Express for handling image uploads. We will also integrate PostgreSQL for storing image metadata. The component will be styled using Styled Components. Finally, we will set up Jest testing for the React component.
 
+## Bucket Policies
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::AWS_ACCOUNT_NUMBER:user/IAM_USERNAME"
+            },
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:DeleteObject"
+            ],
+            "Resource": "arn:aws:s3:::aws-file-upload-patterns/*"
+        }
+    ]
+}
+```
+
 ## Prerequisites
 
 - Node.js and NPM
@@ -11,74 +33,11 @@ In this tutorial, we will build an image upload component in React that uploads 
 - PostgreSQL database
 - AWS CLI and credentials configured
 
-### File/Folder Structure
-
-```shell
-├── public
-│   └── index.html
-├── server
-│   ├── config
-│   │   └── database.js
-│   ├── routes
-│   │   └── images.router.js
-│   └── server.js
-├── src
-│   ├── components
-│   │   ├── App
-│   │   │   ├── __tests__
-│   │   │   │   └── App.test.js
-│   │   │   ├── App.js
-│   │   │   └── App.styles.js
-│   │   ├── ImageList
-│   │   │   ├── __tests__
-│   │   │   │   └── ImageList.test.js
-│   │   │   ├── ImageList.js
-│   │   │   └── ImageList.styles.js
-│   │   ├── ImageUpload
-│   │   │   ├── __tests__
-│   │   │   │   └── ImageUpload.test.js
-│   │   │   ├── ImageUpload.js
-│   │   │   └── ImageUpload.styles.js
-│   └── index.js
-├── .env
-├── .gitignore
-├── package.json
-├── README.md
-├── STRUCTURE.md
-└── DATABASE.sql
-```
-
-### Create the Application Template
-
-```shell
-npx create-react-app s3-multer
-```
-
-### Install Dependencies
-
-Client & Server:
-
-```shell
-npm install react react-dom react-scripts styled-components axios express pg multer aws-sdk dotenv
-```
-
-Testing & Development:
-
-```shell
-npm install --save-dev jest @testing-library/react @testing-library/jest-dom nodemon
-```
-
 ### Environment Variables
 
 Create an .env file at the root of the repo and paste the following in with your values:
 
 ```shell
-# React App
-REACT_APP_API_URL=http://localhost:5050/api
-
-# Node/Express
-PORT=5050
-
 # AWS Credentials
 AWS_ACCESS_KEY_ID=YOUR_AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET_ACCESS_KEY
@@ -86,13 +45,6 @@ AWS_REGION=YOUR_AWS_REGION
 
 # S3
 S3_BUCKET=aws-file-upload-patterns
-
-# PostgreSQL
-PG_USER=YOUR_POSTGRES_USER
-PG_PASSWORD=YOUR_POSTGRES_PASSWORD
-PG_HOST=localhost
-PG_PORT=5432
-PG_DATABASE=aws-file-upload-patterns
 ```
 
 ### ImageUpload Component

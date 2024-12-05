@@ -1,33 +1,41 @@
-import axios from 'axios';
 import React, { useState } from 'react';
+import axios from 'axios';
 import { Button, Container, Form, Input } from './ImageUpload.styles';
 
 const ImageUpload = () => {
-	const [image, setImage] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
-	const handleUpload = async e => {
-		e.preventDefault();
-		const formData = new FormData();
-		formData.append('image', image);
+  const handleFileChange = (event) => {
+    setSelectedFiles([...event.target.files]);
+  };
 
-		try {
-			const res = await axios.post('/api/images', formData);
-			console.log(res.data);
-		} catch (err) {
-			console.error(err);
-		}
-	};
+  const uploadImages = async () => {
+    const formData = new FormData();
+    selectedFiles.forEach((file) => {
+      formData.append('files', file);
+    });
 
-	return (
-		<Container>
-			<h1>Upload an Image</h1>
+    try {
+      await axios.post('/api/images/uploadImage', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      alert('Images uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      alert('Error uploading images.');
+    }
+  };
 
-			<Form onSubmit={handleUpload}>
-				<Input type='file' onChange={e => setImage(e.target.files[0])} />
-				<Button type='submit'>Upload</Button>
-			</Form>
-		</Container>
-	);
+  return (
+    <Container>
+      <Form>
+        <Input type="file" onChange={handleFileChange} multiple />
+        <Button type="button" onClick={uploadImages}>Upload Images</Button>
+      </Form>
+    </Container>
+  );
 };
 
 export default ImageUpload;
